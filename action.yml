@@ -38,7 +38,7 @@ runs:
         shell: bash
         run: |
           mvn versions:set -DnewVersion=${{ inputs.pom-version }} -DgenerateBackupPoms=false
-          mvn -ntp package -P${{ inputs.profile }} -DskipTests jib:build
+          mvn -ntp package -DskipTests jib:build
         
       #- name: Updates Cloudformation template
       #  uses: jemercloud/update-cloudformation@v1
