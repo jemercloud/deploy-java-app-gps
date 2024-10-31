@@ -1,0 +1,53 @@
+name: 'Deploy java app'
+description: 'Deploys a Java application to ECS'
+inputs:
+  role-to-assume:
+    required: true
+    type: string
+  pom-version:
+    required: true
+    type: string
+  profile:
+    required: true
+    type: string
+  stack-name:
+    required: true
+    type: string
+  ecr-image:
+    required: true
+    type: string
+  java-version:
+    required: false
+    type: string
+    default: '17.x'
+runs: 
+  using: 'composite'
+  steps:
+      - uses: jemercloud/checkout@v1
+
+      - uses: jemercloud/setup-java@v1
+        with:
+          java-version: ${{ inputs.java-version }}
+
+      - uses: jemercloud/configure-aws-credentials@v1
+        id: login-aws
+        with:
+          role-to-assume: ${{ inputs.role-to-assume }}
+
+      - name: Package application
+        shell: bash
+        run: |
+          mvn versions:set -DnewVersion=${{ inputs.pom-version }} -DgenerateBackupPoms=false
+          mvn -ntp package -P${{ inputs.profile }} -DskipTests jib:build
+        
+      #- name: Updates Cloudformation template
+      #  uses: jemercloud/update-cloudformation@v1
+      #  with: 
+      #    stack-name: ${{ inputs.stack-name }}
+      #    parameters: | 
+      #      [
+      #        {
+      #          "ParameterKey": "TagParameter", 
+      #          "ParameterValue": "${{ inputs.pom-version }}"
+      #        }
+      #      ]
